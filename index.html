@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Time Tracking Tool</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+<div class="box">
+
+    <h1>⏱ Time Tracking Tool</h1>
+
+    <h2>➕ Add Activity</h2>
+
+    <form action="/add" method="post">
+        <input name="name" placeholder="Activity name" required>
+        <input name="category" placeholder="Category" required>
+        <button>Add Activity</button>
+    </form>
+
+    <h2>📋 Activities</h2>
+
+    {% for a in activities %}
+    <div class="activity">
+        <div>
+            <b>{{ a.name }}</b><br>
+            <small>📂 {{ a.category }}</small>
+        </div>
+
+        {% if running and running.activity_id == a.id %}
+            <div>
+                <span class="timer" id="timer">00:00:00</span>
+                <a href="/stop">⏹ Stop</a>
+            </div>
+        {% else %}
+            <a href="/start/{{ a.id }}">▶ Start</a>
+        {% endif %}
+    </div>
+    {% endfor %}
+
+    {% if running %}
+    <div class="running">
+        🔴 Timer Running
+    </div>
+    {% endif %}
+
+    <h2>📊 Daily Total</h2>
+
+    <p class="total">
+        ⏰ {{ total // 3600 }}h
+        {{ (total % 3600) // 60 }}m
+    </p>
+
+    <h2>📜 Time Usage History</h2>
+
+    {% for e in history %}
+    <p>
+        <b>{{ e.name }}</b> — {{ e.category }}<br>
+
+        🕐 {{ e.start[:16].replace('T',' ') }}
+
+        {% if e.end %}
+        → {{ e.end[:16].replace('T',' ') }}
+        {% else %}
+        → Running
+        {% endif %}
+    </p>
+    {% endfor %}
+
+</div>
+
+{% if running %}
+<script>
+let startTime = new Date("{{ running.start }}");
+
+function updateTimer() {
+    let now = new Date();
+    let seconds = Math.floor((now - startTime) / 1000);
+
+    let h = Math.floor(seconds / 3600);
+    let m = Math.floor((seconds % 3600) / 60);
+    let s = seconds % 60;
+
+    document.getElementById("timer").innerText =
+        String(h).padStart(2, '0') + ":" +
+        String(m).padStart(2, '0') + ":" +
+        String(s).padStart(2, '0');
+}
+
+updateTimer();
+setInterval(updateTimer, 1000);
+</script>
+{% endif %}
+
+</body>
+</html>
